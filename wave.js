@@ -43,57 +43,58 @@ var Wave = exports.Wave = function(settings, waveData) {
     format:         'WAVE'
   }
 
-}
+  this.toBinary = function() {
 
-Wave.prototype.toBinary = function() {
-
-  header = self.headerChunk;
-  fmt    = self.fmtSubChunk;
-  data   = self.dataSubChunk;
+    header = self.headerChunk;
+    fmt    = self.fmtSubChunk;
+    data   = self.dataSubChunk;
+    
+    waveBin = [];
   
-  waveBin = [];
-
-  var intToBinary = function( integer, bitFrame ) {
-    if(bitFrame == 16) {
-      return [integer&0xFF, (integer>>8)&0xFF];
-    } else if(bitFrame == 32) {
-      return [integer&0xFF, (integer>>8)&0xFF, (integer>>16)&0xFF, (integer>>24)&0xFF];
+    var intToBinary = function( integer, bitFrame ) {
+      if(bitFrame == 16) {
+        return [integer&0xFF, (integer>>8)&0xFF];
+      } else if(bitFrame == 32) {
+        return [integer&0xFF, (integer>>8)&0xFF, (integer>>16)&0xFF, (integer>>24)&0xFF];
+      }
     }
+  
+    var stringToBinary = function(str) {
+      strBin = [];
+      for( i = 0; i < str.length; i++) {
+        strBin.push( str.charCodeAt(i) );
+      }
+      return strBin;
+    }
+    
+    return waveBin.concat(
+      stringToBinary(header.chunkId), 
+      intToBinary(header.chunkSize, 32),
+      stringToBinary(header.format),
+      stringToBinary(fmt.subChunk1Id),
+      intToBinary(fmt.subChunk1Size, 32),
+      intToBinary(fmt.audioFormat, 16),
+      intToBinary(fmt.numChannels, 16),
+      intToBinary(fmt.sampleRate, 32),
+      intToBinary(fmt.byteRate, 32),
+      intToBinary(fmt.blockAlign, 16),
+      intToBinary(fmt.bitsPerSample, 16),
+      stringToBinary(data.subChunk2Id),
+      intToBinary(data.subChunk2Size, 32),
+      data.data
+    );
+  
   }
 
-  var stringToBinary = function(str) {
-    strBin = [];
-    for( i = 0; i < str.length; i++) {
-      strBin.push( str.charCodeAt(i) );
-    }
-    return strBin;
+  this.toDataURI = function() {
+    wavBin = self.toBinary();
+
+    var dataURI = 'data:audio/wav;base64,';
+    dataURI += (new Buffer(wavBin)).toString('base64');
+
+    return dataURI;
+    
   }
-  
-  return waveBin.concat(
-    stringToBinary(header.chunkId), 
-    intToBinary(header.chunkSize, 32),
-    stringToBinary(header.format),
-    stringToBinary(fmt.subChunk1Id),
-    intToBinary(fmt.subChunk1Size, 32),
-    intToBinary(fmt.audioFormat, 16),
-    intToBinary(fmt.numChannels, 16),
-    intToBinary(fmt.sampleRate, 32),
-    intToBinary(fmt.byteRate, 32),
-    intToBinary(fmt.blockAlign, 16),
-    intToBinary(fmt.bitsPerSample, 16),
-    stringToBinary(data.subChunk2Id),
-    intToBinary(data.subChunk2Size, 32),
-    data.data
-  );
 
 }
 
-Wave.prototype.toDataURI = function() {
-
-  wavBin = self.toBinary();
-
-  var dataURI = 'data:audio/wav;base64,';
-  dataURI += (new Buffer(wavBin)).toString('base64');
-
-  return dataURI;
-}
