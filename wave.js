@@ -2,7 +2,7 @@
  *  wave.js: javascript wrapper for the wave format
  */
 
-var Wave = exports.Wave = function(settings, waveData) {
+var Wave = function(settings, waveData) {
 
   // Expose version
   this.version = [0,0,1];
@@ -91,6 +91,7 @@ var Wave = exports.Wave = function(settings, waveData) {
 
     var dataURI = 'data:audio/wav;base64,';
     dataURI += (new Buffer(wavBin)).toString('base64');
+//    dataURI += btoa(wavBin);
 
     return dataURI;
     
@@ -98,3 +99,10 @@ var Wave = exports.Wave = function(settings, waveData) {
 
 }
 
+
+// if we are being loaded as a node module
+try {
+  exports.Wave = Wave;
+}
+catch (ReferenceError) {
+}
